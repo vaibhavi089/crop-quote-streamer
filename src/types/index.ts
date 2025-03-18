@@ -20,3 +20,8 @@ export interface CropDetails {
   markets: string[];
   priceData: CropPriceData[];
 }
+
+export interface SearchParams {
+  crop?: string;
+  city?: string;
+}

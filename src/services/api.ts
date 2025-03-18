@@ -1,10 +1,10 @@
 
-import { CropPriceData, CropDetails } from "@/types";
+import { CropPriceData, CropDetails, SearchParams } from "@/types";
 
 const API_KEY = "579b464db66ec23bdd000001cdd3946e44ce4aad7209ff7b23ac571b";
 const BASE_URL = "https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070";
 
-export async function fetchCropPrices(search?: string): Promise<CropPriceData[]> {
+export async function fetchCropPrices(searchParams?: SearchParams): Promise<CropPriceData[]> {
   try {
     // Default parameters
     const params = new URLSearchParams({
@@ -13,9 +13,9 @@ export async function fetchCropPrices(search?: string): Promise<CropPriceData[]>
       "limit": "100",
     });
 
-    // Add search filter if provided
-    if (search) {
-      params.append("filters[commodity]", search);
+    // Add search filters if provided
+    if (searchParams?.crop) {
+      params.append("filters[commodity]", searchParams.crop);
     }
 
     const response = await fetch(`${BASE_URL}?${params.toString()}`);
@@ -26,7 +26,7 @@ export async function fetchCropPrices(search?: string): Promise<CropPriceData[]>
 
     const data = await response.json();
     
-    return data.records.map((record: any) => ({
+    let records = data.records.map((record: any) => ({
       id: record.timestamp || `${record.commodity}-${record.market}-${record.arrival_date}`,
       commodity: record.commodity,
       variety: record.variety,
@@ -38,6 +38,15 @@ export async function fetchCropPrices(search?: string): Promise<CropPriceData[]>
       modalPrice: parseFloat(record.modal_price),
       date: new Date(record.arrival_date),
     }));
+
+    // Filter by city (market) if provided
+    if (searchParams?.city) {
+      records = records.filter(record => 
+        record.market.toLowerCase().includes(searchParams.city!.toLowerCase())
+      );
+    }
+
+    return records;
   } catch (error) {
     console.error("Error fetching crop prices:", error);
     return [];
@@ -56,9 +65,32 @@ export async function fetchCropCategories(): Promise<string[]> {
   }
 }
 
-export async function fetchCropDetails(cropName: string): Promise<CropDetails> {
+export async function fetchMarkets(): Promise<string[]> {
   try {
-    const prices = await fetchCropPrices(cropName);
+    const prices = await fetchCropPrices();
+    // Extract unique markets (cities)
+    const markets = new Set(prices.map(item => item.market));
+    return Array.from(markets).sort();
+  } catch (error) {
+    console.error("Error fetching markets:", error);
+    return [];
+  }
+}
+
+export async function fetchCropDetails(cropName: string, city?: string): Promise<CropDetails> {
+  try {
+    const prices = await fetchCropPrices({ crop: cropName, city });
+    
+    if (prices.length === 0) {
+      return {
+        name: cropName,
+        avgMinPrice: 0,
+        avgMaxPrice: 0,
+        avgModalPrice: 0,
+        markets: [],
+        priceData: [],
+      };
+    }
     
     // Calculate averages
     const avgMinPrice = prices.reduce((sum, item) => sum + item.minPrice, 0) / prices.length;
