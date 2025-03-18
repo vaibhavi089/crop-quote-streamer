@@ -8,9 +8,9 @@ export async function fetchCropPrices(search?: string): Promise<CropPriceData[]>
   try {
     // Default parameters
     const params = new URLSearchParams({
-      api-key: API_KEY,
-      format: "json",
-      limit: "100",
+      "api-key": API_KEY,
+      "format": "json",
+      "limit": "100",
     });
 
     // Add search filter if provided
