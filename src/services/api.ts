@@ -1,7 +1,7 @@
 
 import { CropPriceData, CropDetails } from "@/types";
 
-const API_KEY = "579b464db66ec23bdd0000019994a7f389534e285c880075eca8639";
+const API_KEY = "579b464db66ec23bdd000001cdd3946e44ce4aad7209ff7b23ac571b";
 const BASE_URL = "https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070";
 
 export async function fetchCropPrices(search?: string): Promise<CropPriceData[]> {
