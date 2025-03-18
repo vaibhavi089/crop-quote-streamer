@@ -27,7 +27,7 @@ export async function fetchCropPrices(search?: string): Promise<CropPriceData[]>
     const data = await response.json();
     
     return data.records.map((record: any) => ({
-      id: record.timestamp,
+      id: record.timestamp || `${record.commodity}-${record.market}-${record.arrival_date}`,
       commodity: record.commodity,
       variety: record.variety,
       market: record.market,
