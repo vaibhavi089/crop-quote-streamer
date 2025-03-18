@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CropDetails } from "@/types";
 import PriceChart from "./PriceChart";
 import { TrendingUp, TrendingDown } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface CropPriceCardProps {
   cropDetails: CropDetails;
@@ -18,17 +19,41 @@ const CropPriceCard: React.FC<CropPriceCardProps> = ({ cropDetails }) => {
   // Calculate price trend (simple comparison of first and last values)
   const isPriceUp = sortedData.length > 1 && 
     sortedData[sortedData.length - 1].modalPrice > sortedData[0].modalPrice;
+  
+  // Calculate percentage change
+  const calculatePercentageChange = () => {
+    if (sortedData.length < 2) return 0;
+    
+    const oldPrice = sortedData[0].modalPrice;
+    const newPrice = sortedData[sortedData.length - 1].modalPrice;
+    
+    if (oldPrice === 0) return 0;
+    
+    const change = ((newPrice - oldPrice) / oldPrice) * 100;
+    return change;
+  };
+  
+  const percentageChange = calculatePercentageChange();
+  const percentageText = `${Math.abs(percentageChange).toFixed(2)}%`;
 
   return (
     <Card className="w-full shadow-md hover:shadow-lg transition-shadow duration-300">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
           <CardTitle className="text-xl font-bold">{cropDetails.name}</CardTitle>
-          {isPriceUp ? (
-            <TrendingUp className="h-5 w-5 text-green-500" />
-          ) : (
-            <TrendingDown className="h-5 w-5 text-red-500" />
-          )}
+          <div className="flex items-center gap-2">
+            <Badge 
+              variant={percentageChange >= 0 ? "default" : "destructive"}
+              className={`flex items-center gap-1 ${percentageChange >= 0 ? "bg-green-500" : "bg-red-500"}`}
+            >
+              {percentageChange >= 0 ? (
+                <TrendingUp className="h-3 w-3" />
+              ) : (
+                <TrendingDown className="h-3 w-3" />
+              )}
+              {percentageText}
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
